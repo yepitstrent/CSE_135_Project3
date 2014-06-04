@@ -25,12 +25,12 @@ try
 	String url="jdbc:postgresql://localhost:5432/test";
 	String user="t-dogg3030";
 	String password="password";
-	System.out.println("TEST!!!!");
+	//System.out.println("TEST!!!!");
 	conn =DriverManager.getConnection(url, user, password);
-	System.out.println("AFTER CONN!!");
+	//System.out.println("AFTER CONN!!");
 
 	stmt =conn.createStatement();
-	System.out.println("AFTETR STMT!@!@!@!");
+	//System.out.println("AFTETR STMT!@!@!@!");
 	
 %>	
 
@@ -50,7 +50,7 @@ try
 				<tr>
 					<td>State</td>
 					<td>Category</td>
-					<td>Age</td>
+					
 				</tr>
 				<tr>
 					<td>
@@ -113,7 +113,7 @@ try
 							<option value="0" selected="selected">All Categories</option>
 <%
 							/**SQL_1 for (state, amount)**/
-							System.out.println("DOWN HERE#$#$#$#$#$#");
+							//System.out.println("DOWN HERE#$#$#$#$#$#");
 								String SQL_1="SELECT * FROM categories";
 								rs=stmt.executeQuery(SQL_1);
 								int c_id=0;
@@ -127,20 +127,12 @@ try
 %>
 						</select>
 					</td>
-					<td>
-						<select name="search_key_3" id="search_key_3">
-							<option value="0" selected="selected">All Ages</option>
-							<option value="12_18">12-18</option>
-							<option value="18_45">18-45</option>
-							<option value="45_65">45-65</option>
-							<option value="65_100">65-</option>
-						</select>
-					</td>
+					
 				</tr>
 			</table>
 		</td>
 		<td>
-			<input type="button" value="Run Query" onClick="doSearch()">
+			<input type="button" value="Run Query" onClick="doSearch_p()">
 		</td>
 	</tr>
 </table>

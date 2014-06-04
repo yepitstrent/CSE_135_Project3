@@ -35,8 +35,8 @@ public class DataGeneratorBulk
 
 		int Num_users		=	10; //100
 		int Num_categories	=	10;  //10
-		int Num_products	=	25;//1000
-		int Num_sales		=	100;//10000
+		int Num_products	=	10;//1000
+		int Num_sales		=	10;//10000
 		
 		 String  usersPath		=	"/home/t-dogg3030/Documents/users.txt",
 	    		 categoriesPath	=	"/home/t-dogg3030/Documents/categories.txt",
