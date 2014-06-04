@@ -11,7 +11,15 @@
 -- Create big table with all columns (at bottom of the lattice)
 -- users, products, amt
 
+DROP TABLE IF EXISTS pc_Big;
+DROP TABLE IF EXISTS pc_StateProd;
+DROP TABLE IF EXISTS pc_UseCat;
+DROP TABLE IF EXISTS pc_StateCat;
+DROP TABLE IF EXISTS pc_Users;
+DROP TABLE IF EXISTS pc_Prod;
+
 CREATE TABLE pc_Big (
+  id SERIAL PRIMARY KEY,
   uid INT, --id of user
   pid INT, -- id of product
   use_prod_amt INT -- amount * price at the time of sale
@@ -26,6 +34,7 @@ AND sales.pid = products.id  ;
 
 -- state, products
 CREATE TABLE pc_StateProd (
+  id SERIAL PRIMARY KEY,
   st_name TEXT, 
   prod_id INT,
   st_prod_amt INT 
@@ -39,6 +48,7 @@ GROUP BY users.state
 
 -- users, categories
 CREATE TABLE pc_UseCat (
+  id SERIAL PRIMARY KEY,
   uid INT, 
   cid INT,
   use_cat_amt INT 
@@ -52,6 +62,7 @@ GROUP BY products.cid
 
 -- state, categories
 CREATE TABLE pc_StateCat (
+  id SERIAL PRIMARY KEY,
   st_name TEXT, 
   cid INT,
   st_cat_amt INT
@@ -66,6 +77,7 @@ GROUP BY products.cid -- should work
 
 -- users
 CREATE TABLE pc_Users (
+  id SERIAL PRIMARY KEY,
   uid INT, 
   use_amt INT 
 );
@@ -78,6 +90,7 @@ GROUP BY pc_UseCat.uid; -- sum over categories
 
 -- products
 CREATE TABLE pc_Prod (
+  id SERIAL PRIMARY KEY,
   pid INT, 
   prod_amt INT 
 );

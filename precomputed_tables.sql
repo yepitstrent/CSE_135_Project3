@@ -19,7 +19,6 @@ DROP TABLE IF EXISTS pc_Users;
 DROP TABLE IF EXISTS pc_Prod;
 
 CREATE TABLE pc_Big (
-  id SERIAL PRIMARY KEY,
   uid INT, --id of user
   pid INT, -- id of product
   use_prod_amt INT -- amount * price at the time of sale
@@ -34,7 +33,6 @@ AND sales.pid = products.id  ;
 
 -- state, products
 CREATE TABLE pc_StateProd (
-  id SERIAL PRIMARY KEY,
   st_name TEXT, 
   prod_id INT,
   st_prod_amt INT 
@@ -44,11 +42,10 @@ INSERT INTO pc_StateProd
 SELECT users.state, pc_Big.pid, SUM(pc_Big.use_prod_amt)
 FROM users, pc_Big
 WHERE users.id = pc_Big.uid
-GROUP BY users.state
+GROUP BY users.state, pc_Big.pid;
 
 -- users, categories
 CREATE TABLE pc_UseCat (
-  id SERIAL PRIMARY KEY,
   uid INT, 
   cid INT,
   use_cat_amt INT 
@@ -58,11 +55,10 @@ INSERT INTO pc_UseCat
 SELECT pc_Big.uid, products.cid, SUM(pc_Big.use_prod_amt)
 FROM products, pc_Big
 WHERE products.id = pc_Big.pid
-GROUP BY products.cid
+GROUP BY pc_Big.uid, products.cid;
 
 -- state, categories
 CREATE TABLE pc_StateCat (
-  id SERIAL PRIMARY KEY,
   st_name TEXT, 
   cid INT,
   st_cat_amt INT
@@ -77,7 +73,6 @@ GROUP BY products.cid -- should work
 
 -- users
 CREATE TABLE pc_Users (
-  id SERIAL PRIMARY KEY,
   uid INT, 
   use_amt INT 
 );
@@ -90,7 +85,6 @@ GROUP BY pc_UseCat.uid; -- sum over categories
 
 -- products
 CREATE TABLE pc_Prod (
-  id SERIAL PRIMARY KEY,
   pid INT, 
   prod_amt INT 
 );
@@ -99,4 +93,40 @@ INSERT INTO pc_Prod
 SELECT pc_StateProd.pid, SUM(pc_StateProd.st_prod_amt)
 FROM pc_StateProd
 GROUP BY pc_StateProd.prod_id; -- sum over states
+
+
+-- state
+CREATE TABLE pc_State (
+  st_name TEXT, 
+  st_amt INT 
+);
+
+INSERT INTO pc_State
+SELECT pc_StateCat.st_name, SUM(pc_StateCat.st_cat_amt)
+FROM pc_StateCat
+GROUP BY pc_StateCat.st_name; -- sum over categories
+
+
+-- categories
+CREATE TABLE pc_Cat (
+  cid INT, 
+  cat_amt INT 
+);
+
+INSERT INTO pc_Cat
+SELECT pc_StateCat.cid, SUM(pc_StateCat.st_cat_amt)
+FROM pc_StateCat
+GROUP BY pc_StateCat.cid; -- sum over states
+
+
+-- all
+CREATE TABLE pc_All (
+  all_amt INT 
+);
+
+INSERT INTO pc_All
+SELECT SUM(pc_Cat.cat_amt)
+FROM pc_Cat;
+-- chose sum over categories since 20 categories < 50 states
+-- if number of categories gets > 50 would switch to using pc_State
 
