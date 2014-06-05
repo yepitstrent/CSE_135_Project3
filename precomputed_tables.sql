@@ -31,11 +31,17 @@ CREATE TABLE pc_Big (
   use_prod_amt INT -- amount * price at the time of sale
 );
 
+/*
 INSERT INTO pc_Big
 SELECT users.id, products.id, sales.quantity * sales.price AS amt
 FROM users, products, sales
 WHERE users.id = sales.uid
 AND sales.pid = products.id ;
+*/
+INSERT INTO pc_Big
+SELECT users.id, products.id, COALESCE(sales.quantity * sales.price, 0) AS amt
+FROM (users LEFT OUTER JOIN sales ON users.id = sales.uid) 
+     RIGHT OUTER JOIN products ON sales.pid = products.id ;
 
 
 -- state, products
@@ -45,11 +51,21 @@ CREATE TABLE pc_StateProd (
   st_prod_amt INT
 );
 
+
+
+/*
 INSERT INTO pc_StateProd
 SELECT users.state, pc_Big.pid, SUM(pc_Big.use_prod_amt)
 FROM users, pc_Big
 WHERE users.id = pc_Big.uid
 GROUP BY users.state, pc_Big.pid;
+*/
+INSERT INTO pc_StateProd
+SELECT users.state, products.id, COALESCE(sum(sales.quantity * sales.price), 0)
+FROM users
+LEFT OUTER JOIN sales ON users.id = sales.uid
+RIGHT OUTER JOIN products ON sales.pid = products.id
+GROUP BY users.state, products.id;
 
 -- users, categories
 CREATE TABLE pc_UseCat (
