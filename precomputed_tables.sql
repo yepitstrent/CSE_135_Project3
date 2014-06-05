@@ -197,3 +197,19 @@ FROM pc_Cat;
 -- chose sum over categories since 20 categories < 50 states
 -- if number of categories gets > 50 would switch to using pc_State
 
+DROP TABLE IF EXISTS new_table; 
+CREATE TABLE new_table 
+as (select users.id as uid, products.id as pid 
+    from users, products 
+    group by uid, pid);
+
+DROP TABLE IF EXISTS pc_trent; 
+CREATE TABLE pc_trent 
+as (select n.uid, n.pid, coalesce(sum(sales.price * sales.quantity), 0) 
+    from new_table as n 
+    left outer join sales 
+    on n.uid = sales.uid 
+    and n.pid = sales.pid 
+    group by n.uid, n.pid 
+    order by n.uid, n.pid);
+
