@@ -47,7 +47,7 @@ HashMap<Integer, Integer> customer_ID_amount=	new HashMap<Integer, Integer>();
 Connection	conn=null;
 Statement 	stmt,stmt2;
 ResultSet 	rs=null;
-String  	SQL_1=null,SQL_2=null,SQL_ut=null, SQL_pt=null, SQL_row=null, SQL_col=null;
+String  	SQL_1=null,SQL_2=null,SQL_3=null,SQL_ut=null, SQL_pt=null, SQL_row=null, SQL_col=null;
 String  	SQL_amount_row=null,SQL_amount_col=null,SQL_amount_cell=null;
 int 		p_id=0, p_total, u_id=0;
 String		p_name=null,u_name=null;
@@ -83,7 +83,7 @@ try
 		//gives us first 10 products
 		//SQL_2="select id,name from products order by name asc offset "+pos_col+" limit "+show_num_col;
 		SQL_2 = "select * from pc_Prod order by prod_amt desc limit 10";
-		
+		SQL_3 = "select * from pc_trent order by total desc, pid asc";
 		
 		//SQL_ut="insert into u_t (id, name) "+SQL_1;
 		//SQL_pt="insert into p_t (id, name) "+SQL_2;
@@ -137,7 +137,7 @@ try
 	
 
 	//customer names and totals for the left column
-	/*rs=stmt.executeQuery(SQL_1);
+	rs=stmt.executeQuery(SQL_1);
 	while(rs.next())
 	{
 		//u_id=rs.getInt(1);
@@ -149,7 +149,7 @@ try
 		u_total_list.add(u_total);
 		customer_ID_amount.put(u_id, u_total);
 		
-	}*/
+	}
 //	out.println(SQL_1+"<br>"+SQL_2+"<br>"+SQL_pt+"<BR>"+SQL_ut+"<br>"+SQL_row+"<BR>"+SQL_col+"<br>");
 	//product name
 	rs=stmt.executeQuery(SQL_2);
@@ -234,6 +234,7 @@ try
 					<tr align="center">
 <%	
     int i = 0;
+    int j = 0;
 	int amount_show=0;
 	for(i=0;i<p_list.size();i++)
 	{
@@ -241,22 +242,7 @@ try
 		p_name			=	p_name_list.get(i);
 		p_total         =   p_total_list.get(i);
 		out.print("<td width='10%'><strong>"+p_name+"<br>(<font color='#0000ff'>$"+p_total+"</font>)</strong></td>");
-		/*if(product_ID_amount.get(p_id)!=null)
-		{
-			amount_show=(Integer)product_ID_amount.get(p_id);
-			if(amount_show!=0)
-			{
-				out.print("<td width='10%'><strong>"+p_name+"<br>(<font color='#0000ff'>$"+amount_show+"</font>)</strong></td>");
-			}
-			else
-			{
-				out.print("<td width='10%'><strong>"+p_name+"<br>(<font color='#ff0000'>$0</font>)</strong></td>");
-			}	
-		}
-		else
-		{
-			out.print("<td width='10%'><strong>"+p_name+"<br>(<font color='#ff0000'>$0</font>)</strong></td>");
-		}*/
+		
 	}
 %>
 					</tr>
@@ -268,12 +254,17 @@ try
 <tr><td width="12%">
 	<table align="center" width="100%" border="1">
 	<%	
-		/*for(i=0;i<u_list.size();i++)
+	    
+		for(i=0;i<u_list.size();i++)
 		{
 			u_id			=	u_list.get(i);
 			u_name			=	u_name_list.get(i);
 			u_total         =   u_total_list.get(i);
-			if(customer_ID_amount.get(u_id)!=null)
+			out.println("<tr align=\"center\"><td width=\"10%\"><strong>"+u_name+"(<font color='#0000ff'>$"+u_total+"</font>)</strong></td></tr>");
+			
+			
+			
+			/*if(customer_ID_amount.get(u_id)!=null)
 			{
 				amount_show=(Integer)customer_ID_amount.get(u_id);
 				if(amount_show!=0)
@@ -294,8 +285,8 @@ try
 				p_id	=   p_list.get(j);
 				pos_idPair.put(i+"_"+j, u_id+"_"+p_id);
 				idPair_amount.put(u_id+"_"+p_id,0);
-			}
-		}*/
+			}*/
+		}
 	%>
 	</table>
 </td>
@@ -313,14 +304,20 @@ try
 		
 	%>	 
 	<table align="center" width="100%" border="1">
-	<%	
-		/*String idPair="";
+	<%	/*for(j=0;j<p_list.size();j++)
+	{
+	out.println("<td width=\"10%\"><font color='#ff0000'>0</font></td>");
+}*/
+        rs=stmt.executeQuery(SQL_3);
+		String idPair="";
 		for(i=0;i<u_list.size();i++)
 		{
 			out.println("<tr  align='center'>");
 			for(j=0;j<p_list.size();j++)
-			{
-				idPair=(String)pos_idPair.get(i+"_"+j);
+			{   
+				rs.next();
+				out.println("<td width=\"10%\"><font color='#ff0000'>"+rs.getString("coalesce")+"</font></td>");
+				/*idPair=(String)pos_idPair.get(i+"_"+j);
 				amount=(Integer)idPair_amount.get(idPair);
 				if(amount==0)
 				{
@@ -329,10 +326,10 @@ try
 				else
 				{
 					out.println("<td width=\"10%\"><font color='#0000ff'><b>"+amount+"</b></font></td>");
-				}
+				}*/
 			}
 			out.println("</tr>");
-		}*/
+		}
 	%>
 	</table>
 	
