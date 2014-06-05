@@ -65,6 +65,7 @@ try
 	
 	if(("All").equals(state) && ("0").equals(category) )//0,0
 	{
+		//names from pc tables
 		SQL_1="select state from users group by state order by state asc offset "+pos_row+" limit "+show_num_row;
 		SQL_2="select id,name from products order by name asc offset "+pos_col+" limit "+show_num_col;
 		SQL_ut="insert into us_t (id, state) select u2.id, u.state from ("+SQL_1+") as u left outer join users u2 on u2.state=u.state order by u.state";

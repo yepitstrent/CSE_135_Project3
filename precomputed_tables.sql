@@ -22,6 +22,8 @@ DROP TABLE IF EXISTS pc_Prod;
 DROP TABLE IF EXISTS pc_All;
 DROP TABLE IF EXISTS pc_state;
 DROP TABLE IF EXISTS pc_cat;
+DROP TABLE IF EXISTS pc_Users_Limit;
+DROP TABLE IF EXISTS pc_Prod_Limit;
 
 CREATE TABLE pc_Big (
   uid INT, --id of user
@@ -79,25 +81,69 @@ GROUP BY pc_StateProd.st_name, products.cid; -- should work
 -- users
 CREATE TABLE pc_Users (
   uid INT,
+  name TEXT,
   use_amt INT
 );
 
-INSERT INTO pc_Users
+/*INSERT INTO pc_Users
 SELECT pc_UseCat.uid, SUM(pc_UseCat.use_cat_amt)
 FROM pc_UseCat
-GROUP BY pc_UseCat.uid; -- sum over categories
+GROUP BY pc_UseCat.uid -- sum over categories
+LIMIT 20;*/
+
+INSERT INTO pc_Users
+SELECT users.id, users.name, COALESCE(sum(sales.quantity * sales.price), 0) as use_amt
+FROM users left outer join sales 
+on sales.uid = users.id 
+group by users.id 
+order by use_amt desc;
+
+-- new temp for row header names and sums
+CREATE TABLE pc_Users_Limit (
+  uid INT,
+  name TEXT,
+  use_amt INT
+);
+
+INSERT INTO pc_Users_Limit
+SELECT pc_UseCat.uid, users.name, SUM(pc_UseCat.use_cat_amt) AS use_amt
+FROM pc_UseCat, users
+WHERE pc_UseCat.uid = users.id
+GROUP BY pc_UseCat.uid, users.name -- sum over categories
+ORDER BY use_amt DESC LIMIT 20;
 
 
 -- products
 CREATE TABLE pc_Prod (
   pid INT,
+  name TEXT,
   prod_amt INT
 );
 
 INSERT INTO pc_Prod
+SELECT products.id, products.name, COALESCE(sum(sales.quantity * sales.price), 0) AS prod_amt
+FROM products LEFT OUTER JOIN sales ON products.id = sales.pid
+GROUP BY products.id ORDER BY prod_amt DESC;
+
+/*INSERT INTO pc_Prod
 SELECT pc_StateProd.prod_id, SUM(pc_StateProd.st_prod_amt)
 FROM pc_StateProd
-GROUP BY pc_StateProd.prod_id; -- sum over states
+GROUP BY pc_StateProd.prod_id; -- sum over states*/
+
+-- new temp for col header names
+CREATE TABLE pc_Prod_Limit (
+  pid INT,
+  name TEXT,
+  prod_amt INT
+);
+
+INSERT INTO pc_Prod_Limit
+SELECT pc_StateProd.prod_id, products.name, SUM(pc_StateProd.st_prod_amt) as prod_amt
+FROM pc_StateProd, products
+WHERE pc_StateProd.prod_id = products.id
+GROUP BY pc_StateProd.prod_id, products.name -- sum over states
+ORDER BY prod_amt DESC LIMIT 10;
+
 
 
 -- state
@@ -134,3 +180,4 @@ SELECT SUM(pc_Cat.cat_amt)
 FROM pc_Cat;
 -- chose sum over categories since 20 categories < 50 states
 -- if number of categories gets > 50 would switch to using pc_State
+
