@@ -233,6 +233,51 @@ select t.uid, t.cid, coalesce(sum(sales.price * sales.quantity), 0) as amt from 
   9 | C9   | This is the number 9 category
  10 | C10  | This is the number 10 category
 
+
+
+products
+ id | cid | name  |  sku   | price 
+----+-----+-------+--------+-------
+  1 |   9 | E_P1  | SKU_1  |    89
+  2 |   5 | X_P2  | SKU_2  |     1
+  3 |   3 | X_P3  | SKU_3  |    14
+  4 |   2 | R_P4  | SKU_4  |     8
+  5 |   5 | F_P5  | SKU_5  |    11
+  6 |   3 | W_P6  | SKU_6  |     6
+  7 |  10 | F_P7  | SKU_7  |    40
+  8 |   6 | F_P8  | SKU_8  |    18
+  9 |  10 | L_P9  | SKU_9  |    89
+ 10 |  10 | F_P10 | SKU_10 |    29
+(10 rows)
+
+  uid| pid |  amt
+-----------------
+   3 |   6 |  763
+   3 |   4 |  763
+   3 |   7 |  763
+   3 |  10 | 2289
+   3 |   2 |  763
+   3 |   9 |  763
+   3 |   5 | 1526
+   3 |   3 | 1526
+   3 |   8 |  763
+   3 |   1 |  763
+
+
+SELECT * FROM pc_UseCatAmt where cid = 3 desc limit 20;
+
+
+test=# select * from temp_ProdCatAmt2;
+ pid | cid | amt 
+-----+-----+-----
+   2 |   5 |  14
+   3 |   3 | 280
+  10 |  10 |  29
+   6 |   3 |  60
+   8 |   6 | 306
+   9 |  10 | 623
+
+sales:
  id | uid | pid | quantity | price 
 ----+-----+-----+----------+-------
   1 |   7 |   2 |        6 |     1
@@ -249,18 +294,9 @@ select t.uid, t.cid, coalesce(sum(sales.price * sales.quantity), 0) as amt from 
  12 |  13 |   6 |        1 |     6
 (12 rows)
 
- id | cid | name  |  sku   | price 
-----+-----+-------+--------+-------
-  1 |   9 | E_P1  | SKU_1  |    89
-  2 |   5 | X_P2  | SKU_2  |     1
-  3 |   3 | X_P3  | SKU_3  |    14
-  4 |   2 | R_P4  | SKU_4  |     8
-  5 |   5 | F_P5  | SKU_5  |    11
-  6 |   3 | W_P6  | SKU_6  |     6
-  7 |  10 | F_P7  | SKU_7  |    40
-  8 |   6 | F_P8  | SKU_8  |    18
-  9 |  10 | L_P9  | SKU_9  |    89
- 10 |  10 | F_P10 | SKU_10 |    29
-(10 rows)
+select * from pc_UseCatAmt where cid = 3 order by amt desc, uid, cid limit 20;
+select * from pc_Users order by amt desc limit 20;
 
+SELECT * FROM pc_ProdCatAmt where cid = 3 order by prod_amt desc, pid, cid limit 10;
 
+SELECT * FROM pc_ProdCatAmt where cid = 3 order by prod_amt desc, pid, cid limit 10;

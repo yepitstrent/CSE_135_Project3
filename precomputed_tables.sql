@@ -22,7 +22,6 @@ DROP TABLE IF EXISTS pc_Prod;
 DROP TABLE IF EXISTS pc_All;
 DROP TABLE IF EXISTS pc_state;
 DROP TABLE IF EXISTS pc_cat;
-DROP TABLE IF EXISTS pc_Users_Limit;
 DROP TABLE IF EXISTS pc_Prod_Limit;
 
 CREATE TABLE pc_Big (
@@ -98,7 +97,7 @@ GROUP BY pc_StateProd.st_name, products.cid; -- should work
 CREATE TABLE pc_Users (
   uid INT,
   name TEXT,
-  use_amt INT
+  amt INT
 );
 
 /*INSERT INTO pc_Users
@@ -108,25 +107,13 @@ GROUP BY pc_UseCat.uid -- sum over categories
 LIMIT 20;*/
 
 INSERT INTO pc_Users
-SELECT users.id, users.name, COALESCE(sum(sales.quantity * sales.price), 0) as use_amt
+SELECT users.id, users.name, COALESCE(sum(sales.quantity * sales.price), 0) as amt
 FROM users left outer join sales 
 on sales.uid = users.id 
 group by users.id 
-order by use_amt desc;
+order by amt desc;
 
--- new temp for row header names and sums
-CREATE TABLE pc_Users_Limit (
-  uid INT,
-  name TEXT,
-  use_amt INT
-);
 
-INSERT INTO pc_Users_Limit
-SELECT pc_UseCat.uid, users.name, SUM(pc_UseCat.use_cat_amt) AS use_amt
-FROM pc_UseCat, users
-WHERE pc_UseCat.uid = users.id
-GROUP BY pc_UseCat.uid, users.name -- sum over categories
-ORDER BY use_amt DESC LIMIT 20;
 
 
 -- products
@@ -198,12 +185,12 @@ FROM pc_Cat;
 -- if number of categories gets > 50 would switch to using pc_State
 
 DROP TABLE IF EXISTS new_table; 
-CREATE TABLE new_table as (select users.id as uid, products.id as pid, pc_users.use_amt as total, pc_Prod.prod_amt as prod_total 
+CREATE TABLE new_table as (select users.id as uid, products.id as pid, pc_users.amt as total, pc_Prod.prod_amt as prod_total 
                            from users, products, pc_users, pc_Prod 
                            WHERE users.id = pc_users.uid 
                            and pc_Prod.pid = products.id 
-                           group by users.id, products.id, pc_users.use_amt, pc_Prod.prod_amt 
-                           order by pc_users.use_amt desc, pc_Prod.prod_amt desc);
+                           group by users.id, products.id, pc_users.amt, pc_Prod.prod_amt 
+                           order by pc_users.amt desc, pc_Prod.prod_amt desc);
 
 
 DROP TABLE IF EXISTS pc_cust00; 
@@ -215,19 +202,31 @@ CREATE TABLE pc_cust00 as (select n.uid, n.pid, n.total, n.prod_total, coalesce(
                           group by n.uid, n.pid, n.total, n.prod_total 
                           order by n.total, n.uid, n.pid);
 
-/*select * from pc_trent order by total desc, prod_total desc;*/
 
+--CASE 01
+DROP TABLE IF EXISTS temp_UseCatAmt1;
+CREATE TABLE temp_UseCatAmt1 as (select users.id as uid, users.name as name, categories.id as cid from users, categories group by users.id, users.name, categories.id);
 
-DROP TABLE IF EXISTS temp_UseCat;
-CREATE TABLE temp_UseCat as (select users.id as uid, categories.id as cid from users, categories group by users.id, categories.id);
+DROP TABLE IF EXISTS temp_UseCatAmt2;
+CREATE TABLE temp_UseCatAmt2 as (select t1.uid, t1.name, t1.cid, coalesce(sum(sales.price * sales.quantity), 0) as amt from temp_UseCatAmt1 as t1, sales, products, categories where sales.pid = products.id and categories.id = products.cid and t1.uid = sales.uid and t1.cid = categories.id group by t1.uid, t1.name, t1.cid );
 
+--list us users in case 01
 DROP TABLE IF EXISTS pc_UseCatAmt;
-CREATE TABLE pc_UseCatAmt as ( select t.uid, t.cid, coalesce(sum(sales.price * sales.quantity), 0) as amt 
-                            from temp_UseCat as t
-                            left outer join sales
-                            on t.uid = sales.uid
-                            left outer join products 
-                            on t.cid = products.cid
-                            group by t.uid, t.cid
-                          );
+CREATE TABLE pc_UseCatAmt as (select t1.uid, t1.name, t1.cid, coalesce(t2.amt, 0) as amt from temp_UseCatAmt1 AS t1 LEFT OUTER JOIN temp_UseCatAmt2 AS t2 ON t1.uid = t2.uid and t1.cid = t2.cid );
+
+--generate every product with every category
+DROP TABLE IF EXISTS temp_ProdCatAmt1;
+CREATE TABLE temp_ProdCatAmt1 as (select products.id as pid, products.name as name, categories.id as cid from products, categories group by products.id, products.name, categories.id);
+
+--list of products in case 01
+DROP TABLE IF EXISTS pc_ProdCatAmt;
+CREATE TABLE pc_ProdCatAmt as (select t1.pid, t1.name, t1.cid, coalesce(sum(sales.price * sales.quantity), 0) as prod_amt from temp_ProdCatAmt1 as t1, sales, products, categories where sales.pid = products.id and categories.id = products.cid and t1.pid = sales.pid and t1.cid = categories.id group by t1.pid, t1.name, t1.cid);
+-------------------------------------------------------------------------------------------------------------------------------
+
+--select * from temp_ProdCatAmt1;
+/*DROP TABLE IF EXISTS pc_ProdCatAmt;
+CREATE TABLE pc_ProdCatAmt as (select t1.pid, t1.name, t1.cid, coalesce(t2.amt, 0) as prod_amt from temp_ProdCatAmt1 AS t1 LEFT OUTER JOIN temp_ProdCatAmt2 AS t2 ON t1.pid = t2.pid and t1.cid = t2.cid);*/
+
+
+
 
