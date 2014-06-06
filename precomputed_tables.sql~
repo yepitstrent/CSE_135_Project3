@@ -198,18 +198,21 @@ FROM pc_Cat;
 -- if number of categories gets > 50 would switch to using pc_State
 
 DROP TABLE IF EXISTS new_table; 
-CREATE TABLE new_table as (select users.id as uid, products.id as pid, pc_users.use_amt as total 
-                           from users, products, pc_users 
+CREATE TABLE new_table as (select users.id as uid, products.id as pid, pc_users.use_amt as total, pc_Prod.prod_amt as prod_total 
+                           from users, products, pc_users, pc_Prod 
                            WHERE users.id = pc_users.uid 
-                           group by users.id, pid, pc_users.use_amt);
+                           and pc_Prod.pid = products.id 
+                           group by users.id, products.id, pc_users.use_amt, pc_Prod.prod_amt 
+                           order by pc_users.use_amt desc, pc_Prod.prod_amt desc);
 
 
 DROP TABLE IF EXISTS pc_trent; 
-CREATE TABLE pc_trent as (select n.uid, n.pid, n.total, coalesce(sum(sales.price * sales.quantity), 0) 
+CREATE TABLE pc_trent as (select n.uid, n.pid, n.total, n.prod_total, coalesce(sum(sales.price * sales.quantity), 0) 
                           from new_table as n 
                           left outer join sales 
                           on n.uid = sales.uid 
                           and n.pid = sales.pid 
-                          group by n.uid, n.pid, n.total 
+                          group by n.uid, n.pid, n.total, n.prod_total 
                           order by n.total, n.uid, n.pid);
+
 
