@@ -70,11 +70,14 @@ try
 	{
 		SQL_1 = "select * from pc_Users order by use_amt desc limit 20";
 		SQL_2 = "select * from pc_Prod order by prod_amt desc limit 10";
-		SQL_3 = "select * from pc_trent order by total desc, prod_total desc";
+		SQL_3 = "select * from pc_cust00 order by total desc, prod_total desc";
 	}
 	
 	if(("All").equals(state) && !("0").equals(category))//0,1
 	{
+		SQL_1 = "SELECT * FROM pc_UseCatAmt desc limit 20";
+		SQL_2 = "SELECT * FROM pc_ProdCatAmt desc limit 10";
+		SQL_3 = "SELECT * FROM pc_cust01 order by total desc, prod_total desc";
 		//SQL_1="select id,name from users order by name asc offset "+pos_row+" limit "+show_num_row;
 		//SQL_2="select id,name from products where cid="+category+" order by name asc offset "+pos_col+" limit "+show_num_col;
 		//SQL_ut="insert into u_t (id, name) "+SQL_1;
@@ -87,26 +90,32 @@ try
 	
 	if(!("All").equals(state) && ("0").equals(category) )//1,0
 	{
-		SQL_1="select id,name from users where state='"+state+"' order by name asc offset "+pos_row+" limit "+show_num_row;
-		SQL_2="select id,name from products order by name asc offset "+pos_col+" limit "+show_num_col;
-		SQL_ut="insert into u_t (id, name) "+SQL_1;
-		SQL_pt="insert into p_t (id, name) "+SQL_2;
-		SQL_row="select count(*) from users where state='"+state+"' ";
-		SQL_col="select count(*) from products";
-		SQL_amount_row="select s.uid, sum(s.quantity*s.price) from  u_t u, sales s  where s.uid=u.id group by s.uid;";
-		SQL_amount_col="select s.pid, sum(s.quantity*s.price) from p_t p, sales s, users u where s.pid=p.id  and s.uid=u.id and u.state='"+state+"'  group by s.pid;";
+		SQL_1 = "SELECT * FROM pc_UseStAmt desc limit 20";
+		SQL_2 = "SELECT * FROM pc_ProdStAmt desc limit 10";
+		SQL_3 = "SELECT * FROM pc_cust10 order by total desc, prod_total desc";
+		//SQL_1="select id,name from users where state='"+state+"' order by name asc offset "+pos_row+" limit "+show_num_row;
+		//SQL_2="select id,name from products order by name asc offset "+pos_col+" limit "+show_num_col;
+		//SQL_ut="insert into u_t (id, name) "+SQL_1;
+		//SQL_pt="insert into p_t (id, name) "+SQL_2;
+		//SQL_row="select count(*) from users where state='"+state+"' ";
+		//SQL_col="select count(*) from products";
+		//SQL_amount_row="select s.uid, sum(s.quantity*s.price) from  u_t u, sales s  where s.uid=u.id group by s.uid;";
+		//SQL_amount_col="select s.pid, sum(s.quantity*s.price) from p_t p, sales s, users u where s.pid=p.id  and s.uid=u.id and u.state='"+state+"'  group by s.pid;";
 	}
 	
 	if(!("All").equals(state) && !("0").equals(category) )//1,1
 	{
-		SQL_1="select id,name from users where state='"+state+"' order by name asc offset "+pos_row+" limit "+show_num_row;
-		SQL_2="select id,name from products where cid="+category+" order by name asc offset "+pos_col+" limit "+show_num_col;
-		SQL_ut="insert into u_t (id, name) "+SQL_1;
-		SQL_pt="insert into p_t (id, name) "+SQL_2;
-		SQL_row="select count(*) from users where state='"+state+"' ";
-		SQL_col="select count(*) from products where cid="+category+"";
-		SQL_amount_row="select s.uid, sum(s.quantity*s.price) from  u_t u, sales s, products p  where s.pid=p.id and p.cid="+category+" and s.uid=u.id group by s.uid;";
-		SQL_amount_col="select s.pid, sum(s.quantity*s.price) from p_t p, sales s, users u where s.pid=p.id  and s.uid=u.id and u.state='"+state+"'  group by s.pid;";
+		SQL_1 = "SELECT * FROM pc_UseStCatAmt desc limit 20";
+		SQL_2 = "SELECT * FROM pc_ProdStCatAmt desc limit 10";
+		SQL_3 = "SELECT * FROM pc_cust11 order by total desc, prod_total desc";
+		//SQL_1="select id,name from users where state='"+state+"' order by name asc offset "+pos_row+" limit "+show_num_row;
+		//SQL_2="select id,name from products where cid="+category+" order by name asc offset "+pos_col+" limit "+show_num_col;
+		//SQL_ut="insert into u_t (id, name) "+SQL_1;
+		//SQL_pt="insert into p_t (id, name) "+SQL_2;
+		//SQL_row="select count(*) from users where state='"+state+"' ";
+		//SQL_col="select count(*) from products where cid="+category+"";
+		//SQL_amount_row="select s.uid, sum(s.quantity*s.price) from  u_t u, sales s, products p  where s.pid=p.id and p.cid="+category+" and s.uid=u.id group by s.uid;";
+		//SQL_amount_col="select s.pid, sum(s.quantity*s.price) from p_t p, sales s, users u where s.pid=p.id  and s.uid=u.id and u.state='"+state+"'  group by s.pid;";
 
 	}
 	

@@ -33,3 +33,51 @@ test=# select * from pc_Big order by uid;
    8 |   6 |          330
 (10 rows)
 
+
+test=# select * from pc_StateProd;
+  st_name   | prod_id | st_prod_amt 
+------------+---------+-------------
+ Tennessee  |       6 |         231
+ Wisconsin  |      10 |         320
+ Utah       |       6 |         132
+ Utah       |       8 |         154
+ Wisconsin  |       1 |         234
+ Kentucky   |       7 |         567
+ Tennessee  |       5 |           3
+ California |       2 |         128
+ Kentucky   |       6 |         330
+ Kentucky   |       8 |         693
+(10 rows)
+
+
+test=# select * from pc_UseCat;
+ uid | cid | use_cat_amt 
+-----+-----+-------------
+   3 |   9 |         234
+   8 |   2 |         693
+   6 |   9 |         132
+   4 |   2 |         154
+   8 |   1 |         567
+   8 |   9 |         330
+   1 |   6 |         128
+   5 |   9 |         231
+   5 |   4 |           3
+   3 |   6 |         320
+(10 rows)
+
+test=# select * from pc_StateCat;
+  st_name   | cid | st_cat_amt 
+------------+-----+------------
+ Wisconsin  |   6 |        320
+ California |   6 |        128
+ Kentucky   |   2 |        693
+ Kentucky   |   9 |        330
+ Kentucky   |   1 |        567
+ Utah       |   2 |        154
+ Tennessee  |   9 |        231
+ Tennessee  |   4 |          3
+ Wisconsin  |   9 |        234
+ Utah       |   9 |        132
+(10 rows)
+
+

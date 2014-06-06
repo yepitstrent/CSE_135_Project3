@@ -206,8 +206,8 @@ CREATE TABLE new_table as (select users.id as uid, products.id as pid, pc_users.
                            order by pc_users.use_amt desc, pc_Prod.prod_amt desc);
 
 
-DROP TABLE IF EXISTS pc_trent; 
-CREATE TABLE pc_trent as (select n.uid, n.pid, n.total, n.prod_total, coalesce(sum(sales.price * sales.quantity), 0) 
+DROP TABLE IF EXISTS pc_cust00; 
+CREATE TABLE pc_cust00 as (select n.uid, n.pid, n.total, n.prod_total, coalesce(sum(sales.price * sales.quantity), 0) 
                           from new_table as n 
                           left outer join sales 
                           on n.uid = sales.uid 

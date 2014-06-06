@@ -80,4 +80,187 @@ test=# select * from pc_StateCat;
  Utah       |   9 |        132
 (10 rows)
 
+insert into u_t (id, name) select id,name from users order by name asc offset 0 limit 20;
+
+
+
+select s.uid, sum(s.quantity*s.price) from  u_t u, sales s  where s.uid=u.id group by s.uid;
+
+
+
+INSERT INTO pc_Users
+SELECT pc_UseCat.uid, SUM(pc_UseCat.use_cat_amt)
+FROM pc_UseCat
+GROUP BY pc_UseCat.uid;
+
+COALESCE
+
+select users.id, sum(sales.quantity * sales.price) as total from users left outer join sales on sales.uid = users.id group by total;
+
+select users.id, COALESCE(sum(sales.quantity * sales.price), 0) as total from users left outer join sales on sales.uid = users.id group by users.id order by total desc;
+
+
+SELECT users.id, products.id, COALESCE(sales.quantity * sales.price, 0) AS amt FROM users LEFT OUTER JOIN sales ON users.id = sales.uid RIGHT OUTER JOIN products ON sales.pid = products.id ;
+
+SELECT users.id as uid, products.id as pid, COALESCE(sales.quantity * sales.price, 0) AS amt FROM users LEFT OUTER JOIN sales ON users.id = sales.uid LEFT OUTER JOIN products on products.id = sales.pid order by uid;
+
+test=# select users.id as uid, products.id as pid, coalesce(sales.quantity * sales.price, 0) as amt from users, products, sales where sales.uid = users.id and products.id = sales.pid group by users.id, products.id, amt;
+
+CREATE TABLE UsersAndProd
+select users.id as uid, products.id as pid from users, products where group by users.id, products.id;
+
+
+ uid |  uname   | pid | pname | user_x_prod_amt 
+-----+----------+-----+-------+-----------------
+   3 | A_user_2 |   9 | L_P9  |             623
+   3 | A_user_2 |   3 | X_P3  |             140
+   5 | N_user_4 |   8 | F_P8  |             180
+   5 | N_user_4 |   8 | F_P8  |             126
+   7 | B_user_6 |   3 | X_P3  |             140
+   7 | B_user_6 |   2 | X_P2  |               1
+   7 | B_user_6 |   2 | X_P2  |               6
+   7 | B_user_6 |   2 | X_P2  |               5
+   8 | D_user_7 |   6 | W_P6  |              54
+  10 | F_user_9 |   2 | X_P2  |               2
+(10 rows)
+
+
+ id | uid | pid | quantity | price 
+----+-----+-----+----------+-------
+  7 |   3 |   9 |        7 |    89
+ 10 |   3 |   3 |       10 |    14
+  5 |   5 |   8 |       10 |    18
+  3 |   5 |   8 |        7 |    18
+  6 |   7 |   3 |       10 |    14
+  2 |   7 |   2 |        1 |     1
+  1 |   7 |   2 |        6 |     1
+  8 |   7 |   2 |        5 |     1
+  9 |   8 |   6 |        9 |     6
+  4 |  10 |   2 |        2 |     1
+
+
+
+CREATE TABLE pc_CustomersAll (
+uid INT,
+uname TEXT,
+pid INT,
+pname TEXT,
+user_x_prod_amt INT
+);
+
+INSERT INTO pc_CustomersAll
+SELECT temp.uid, temp.pid, COALESCE(sum(sales.quantity * sales.price), 0) AS user_x_prod_amt
+FROM
+(select users.id as uid, products.id as pid from users, products group by uid, pid) AS temp LEFT OUTER JOIN sales ON temp.uid = sales.uid AND temp.pid = sales.pid;
+
+
+
+//////////////////////
+
+test=# select n.uid, n.pid, coalesce(sum(sales.price * sales.quantity), 0) from new_table as n left outer join sales on n.uid = sales.uid and n.pid = sales.pid group by n.uid, n.pid order by n.uid, n.pid;
+
+////////////////////////
+
+
+  id | uid | pid | quantity | price 
+----+-----+-----+----------+-------
+  7 |   3 |   9 |        7 |    89
+ 10 |   3 |   3 |       10 |    14
+  5 |   5 |   8 |       10 |    18
+  3 |   5 |   8 |        7 |    18
+  6 |   7 |   3 |       10 |    14
+  2 |   7 |   2 |        1 |     1
+  1 |   7 |   2 |        6 |     1
+  8 |   7 |   2 |        5 |     1
+  9 |   8 |   6 |        9 |     6
+  4 |  10 |   2 |        2 |     1
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+DROP TABLE IF EXISTS new_table; CREATE TABLE new_table as (select users.id as uid, products.id as pid, pc_users.use_amt as total from users, products, pc_users WHERE users.id = pc_users.uid group by users.id, pid, pc_users.use_amt);
+
+DROP TABLE IF EXISTS pc_trent; CREATE TABLE pc_trent as (select n.uid, n.pid, n.total, coalesce(sum(sales.price * sales.quantity), 0) from new_table as n left outer join sales on n.uid = sales.uid and n.pid = sales.pid group by n.uid, n.pid, n.total order by n.total, n.uid, n.pid);
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+select users.id as uid, products.id as pid, pc_users.use_amt from users, products, pc_users WHERE users.id = pc_users.uid group by uid, pid;
+
+select users.id as uid, products.id as pid, pc_users.use_amt as total from users, products, pc_users WHERE users.id = pc_users.uid group by users.id, pid, pc_users.use_amt
+
+
+
+
+
+
+select users.id as uid, products.id as pid, pc_users.use_amt, pc_Prod.prod_amt from users, products, pc_users, pc_Prod WHERE users.id = pc_users.uid and pc_Prod.pid = products.id group by uid, pid;
+
+
+
+
+DROP TABLE IF EXISTS new_table; 
+CREATE TABLE new_table as (select users.id as uid, products.id as pid, pc_users.use_amt as total, pc_Prod.prod_amt as prod_total 
+                           from users, products, pc_users, pc_Prod 
+                           WHERE users.id = pc_users.uid 
+                           and pc_Prod.pid = products.id 
+                           group by users.id, products.id, pc_users.use_amt, pc_Prod.prod_amt 
+                           order by pc_users.use_amt desc, pc_Prod.prod_amt desc);
+
+
+DROP TABLE IF EXISTS pc_trent; 
+CREATE TABLE pc_trent as (select n.uid, n.pid, n.total, n.prod_total coalesce(sum(sales.price * sales.quantity), 0) 
+                          from new_table as n 
+                          left outer join sales 
+                          on n.uid = sales.uid 
+                          and n.pid = sales.pid 
+                          group by n.uid, n.pid, n.total, n.prod_total 
+                          order by n.total, n.uid, n.pid);
+
+
+
+select users.id as uid, products.id as pid, pc_users.use_amt as total, pc_Prod.prod_amt as prod_total from users, products, pc_users, pc_Prod WHERE users.id = pc_users.uid and pc_Prod.pid = products.id group by users.id, products.id, pc_users.use_amt, pc_Prod.prod_amt order by pc_users.use_amt desc, pc_Prod.prod_amt desc;
+
+
+select t.uid, t.cid, coalesce(sum(sales.price * sales.quantity), 0) as amt from temp_UseCat as t left outer join sales on t.uid = sales.uid left outer join products on t.cid = products.cid
+
+ id | name |          description           
+----+------+--------------------------------
+  1 | C1   | This is the number 1 category
+  2 | C2   | This is the number 2 category
+  3 | C3   | This is the number 3 category
+  4 | C4   | This is the number 4 category
+  5 | C5   | This is the number 5 category
+  6 | C6   | This is the number 6 category
+  7 | C7   | This is the number 7 category
+  8 | C8   | This is the number 8 category
+  9 | C9   | This is the number 9 category
+ 10 | C10  | This is the number 10 category
+
+ id | uid | pid | quantity | price 
+----+-----+-----+----------+-------
+  1 |   7 |   2 |        6 |     1
+  2 |   7 |   2 |        1 |     1
+  3 |   5 |   8 |        7 |    18
+  4 |  10 |   2 |        2 |     1
+  5 |   5 |   8 |       10 |    18
+  6 |   7 |   3 |       10 |    14
+  7 |   3 |   9 |        7 |    89
+  8 |   7 |   2 |        5 |     1
+  9 |   8 |   6 |        9 |     6
+ 10 |   3 |   3 |       10 |    14
+ 11 |  13 |  10 |        1 |    29
+ 12 |  13 |   6 |        1 |     6
+(12 rows)
+
+ id | cid | name  |  sku   | price 
+----+-----+-------+--------+-------
+  1 |   9 | E_P1  | SKU_1  |    89
+  2 |   5 | X_P2  | SKU_2  |     1
+  3 |   3 | X_P3  | SKU_3  |    14
+  4 |   2 | R_P4  | SKU_4  |     8
+  5 |   5 | F_P5  | SKU_5  |    11
+  6 |   3 | W_P6  | SKU_6  |     6
+  7 |  10 | F_P7  | SKU_7  |    40
+  8 |   6 | F_P8  | SKU_8  |    18
+  9 |  10 | L_P9  | SKU_9  |    89
+ 10 |  10 | F_P10 | SKU_10 |    29
+(10 rows)
+
 
