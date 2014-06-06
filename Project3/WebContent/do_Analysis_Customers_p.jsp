@@ -68,45 +68,21 @@ try
 	
 	if(("All").equals(state) && ("0").equals(category))//0,0
 	{
-		System.out.println("BASE CASE");
-		//top 50 user names by greatest amt from the pc_users
-		//SQL_1 = "select p.uid, users.name, p.use_amt from pc_users as p, users where p.uid = users.id order by use_amt desc limit 20";
-		
 		SQL_1 = "select * from pc_Users order by use_amt desc limit 20";
-		
-		//give us the first 20 names
-		//SQL_1="select id,name from users order by name asc offset "+pos_row+" limit "+show_num_row;
-		
-		//get product names from pc_prod and products
-		//SQL_2 = "select p.pid, products.name, p.prod_amt from pc_prod as p, products where products.id = p.pid order by prod_amt desc limit 10";
-		
-		//gives us first 10 products
-		//SQL_2="select id,name from products order by name asc offset "+pos_col+" limit "+show_num_col;
 		SQL_2 = "select * from pc_Prod order by prod_amt desc limit 10";
-		SQL_3 = "select * from pc_trent order by total desc, pid asc";
-		
-		//SQL_ut="insert into u_t (id, name) "+SQL_1;
-		//SQL_pt="insert into p_t (id, name) "+SQL_2;
-		SQL_row="select count(*) from users";
-		SQL_col="select count(*) from products";
-		
-		//SQL_amount_row = "select p.uid, users.name, p.use_amt from ("+ SQL_1 +") as p, users where p.uid = users.id order by use_amt desc limit 20";
-		//SQL_amount_row="select s.uid, sum(s.quantity*s.price) from  u_t u, sales s  where s.uid=u.id group by s.uid;";
-		
-		//select p.pid, products.name, p.prod_amt from pc_prod as p, products where products.id = p.pid order by prod_amt desc limit 10
-		//SQL_amount_col="select s.pid, sum(s.quantity*s.price) from p_t p, sales s where s.pid=p.id  group by s.pid;";
+		SQL_3 = "select * from pc_trent order by total desc, prod_total desc";
 	}
 	
 	if(("All").equals(state) && !("0").equals(category))//0,1
 	{
-		SQL_1="select id,name from users order by name asc offset "+pos_row+" limit "+show_num_row;
-		SQL_2="select id,name from products where cid="+category+" order by name asc offset "+pos_col+" limit "+show_num_col;
-		SQL_ut="insert into u_t (id, name) "+SQL_1;
-		SQL_pt="insert into p_t (id, name) "+SQL_2;
-		SQL_row="select count(*) from users";
-		SQL_col="select count(*) from products where cid="+category+"";
-	    SQL_amount_row="select s.uid, sum(s.quantity*s.price) from  u_t u, sales s, products p  where s.pid=p.id and p.cid="+category+" and s.uid=u.id group by s.uid;";
-		SQL_amount_col="select s.pid, sum(s.quantity*s.price) from p_t p, sales s where s.pid=p.id  group by s.pid;";
+		//SQL_1="select id,name from users order by name asc offset "+pos_row+" limit "+show_num_row;
+		//SQL_2="select id,name from products where cid="+category+" order by name asc offset "+pos_col+" limit "+show_num_col;
+		//SQL_ut="insert into u_t (id, name) "+SQL_1;
+		//SQL_pt="insert into p_t (id, name) "+SQL_2;
+		//SQL_row="select count(*) from users";
+		//SQL_col="select count(*) from products where cid="+category+"";
+	    //SQL_amount_row="select s.uid, sum(s.quantity*s.price) from  u_t u, sales s, products p  where s.pid=p.id and p.cid="+category+" and s.uid=u.id group by s.uid;";
+		//SQL_amount_col="select s.pid, sum(s.quantity*s.price) from p_t p, sales s where s.pid=p.id  group by s.pid;";
 	}
 	
 	if(!("All").equals(state) && ("0").equals(category) )//1,0

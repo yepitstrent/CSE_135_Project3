@@ -217,3 +217,17 @@ CREATE TABLE pc_trent as (select n.uid, n.pid, n.total, n.prod_total, coalesce(s
 
 /*select * from pc_trent order by total desc, prod_total desc;*/
 
+
+DROP TABLE IF EXISTS temp_UseCat;
+CREATE TABLE temp_UseCat as (select users.id as uid, categories.id as cid from users, categories group by users.id, categories.id);
+
+DROP TABLE IF EXISTS pc_UseCatAmt;
+CREATE TABLE pc_UseCatAmt as ( select t.uid, t.cid, coalesce(sum(sales.price * sales.quantity), 0) as amt 
+                            from temp_UseCat as t
+                            left outer join sales
+                            on t.uid = sales.uid
+                            left outer join products 
+                            on t.cid = products.cid
+                            group by t.uid, t.cid
+                          );
+

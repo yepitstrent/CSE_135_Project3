@@ -215,4 +215,11 @@ CREATE TABLE pc_trent as (select n.uid, n.pid, n.total, n.prod_total, coalesce(s
                           group by n.uid, n.pid, n.total, n.prod_total 
                           order by n.total, n.uid, n.pid);
 
+/*select * from pc_trent order by total desc, prod_total desc;*/
+
+
+DROP TABLE IF EXISTS temp_UseCat;
+CREATE TABLE temp_UseCat as (select users.id, categories.id from users, categories group by users.id, categories.id);
+
+DROP TABLE IF EXISTS pc_UseCat();
 
