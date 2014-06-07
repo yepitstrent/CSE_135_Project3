@@ -45,9 +45,9 @@ HashMap<Integer, Integer> customer_ID_amount=	new HashMap<Integer, Integer>();
 %>
 <%
 Connection	conn=null;
-Statement 	stmt1,stmt2,stmt3;
+Statement 	stmt1,stmt2,stmt3,stmt4;
 ResultSet 	rs1=null,rs2=null,rs3=null;
-String  	SQL_1=null,SQL_2=null,SQL_3=null,SQL_ut=null, SQL_pt=null, SQL_row=null, SQL_col=null;
+String  	SQL_1=null,SQL_2=null,SQL_3=null,SQL_4=null, SQL_pt=null, SQL_row=null, SQL_col=null;
 String  	SQL_amount_row=null,SQL_amount_col=null,SQL_amount_cell=null;
 int 		p_id=0, p_total, u_id=0;
 String		p_name=null,u_name=null;
@@ -65,53 +65,52 @@ try
 	stmt1 =conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
 	stmt2 =conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
 	stmt3 =conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
-	
+	stmt4 =conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
 	
 	if(("All").equals(state) && ("0").equals(category))//0,0
 	{
-		//SQL_1 = "select * from pc_Users order by amt desc limit 20";//uid, names, amt per user
 		SQL_1 = "SELECT * FROM pc_UsersAmt ORDER BY total desc LIMIT 20";
-		//SQL_2 = "select * from pc_Prod order by prod_amt desc limit 10";//pid , names, amt per prod
 		SQL_2 = "SELECT * FROM pc_ProdAmt ORDER BY total desc LIMIT 10";
-		//SQL_3 = "select * from pc_cust00 order by total desc, prod_total desc"; // amt / prod by the user
-		SQL_3 = "DROP TABLE IF EXISTS temp1; CREATE TABLE temp1 (u_rank SERIAL PRIMARY KEY, uid INT); "+
+		SQL_4 = "DROP TABLE IF EXISTS temp1; CREATE TABLE temp1 (u_rank SERIAL PRIMARY KEY, uid INT); "+
 		        "INSERT INTO temp1(uid) select pua.uid from pc_UsersAmt as pua order by pua.total desc limit 20; "+
 				"DROP TABLE IF EXISTS temp2; CREATE TABLE temp2 (p_Rank SERIAL PRIMARY KEY, pid INT); "+
 		        "INSERT INTO temp2(pid) select ppa.pid from pc_ProdAmt as ppa order by ppa.total desc limit 10; "+
 				"DROP TABLE IF EXISTS temp3; CREATE TABLE temp3 (t_rank SERIAL PRIMARY KEY, uid INT, pid INT); "+
-		        "INSERT INTO temp3(uid, pid) select t1.uid, t2.pid from temp1 as t1, temp2 as t2; " +
-		        "select t3.t_rank, t3.uid, t3.pid, coalesce(pc_UserProdAmt.total,0) as total " +
+		        "INSERT INTO temp3(uid, pid) select t1.uid, t2.pid from temp1 as t1, temp2 as t2";
+		SQL_3 = "select t3.t_rank, t3.uid, t3.pid, coalesce(pc_UserProdAmt.total,0) as total " +
 				"from temp3 as t3 " + 
 				"left outer join pc_UserProdAmt on t3.uid = pc_UserProdAmt.uid " +
 				"AND t3.pid = pc_UserProdAmt.pid " +
 				"order by t3.t_rank";
-		
-		
-		
-		/*SQL_3 = "SELECT * FROM pc_UserProdAmt AS pcu WHERE pcu.pid IN "
-		       +"(SELECT pcp.pid FROM pc_ProdAmt AS pcp ORDER BY pcp.total desc LIMIT 10) order by pcu.total desc";*/
 	}
 	
 	if(("All").equals(state) && !("0").equals(category))//0,1
 	{
-		System.out.println("CAT: " + category);
-		SQL_1 = "select * from pc_UseCatAmt where cid = " + category + " order by amt desc, uid, cid limit 20";
-		SQL_2 = "SELECT * FROM pc_ProdCatAmt where cid = " + category + " order by prod_amt desc, pid, cid limit 10";
-		SQL_3 = "SELECT * FROM pc_cust01 order by total desc, prod_total desc";
-		//SQL_1="select id,name from users order by name asc offset "+pos_row+" limit "+show_num_row;
-		//SQL_2="select id,name from products where cid="+category+" order by name asc offset "+pos_col+" limit "+show_num_col;
-		//SQL_ut="insert into u_t (id, name) "+SQL_1;
-		//SQL_pt="insert into p_t (id, name) "+SQL_2;
-		//SQL_row="select count(*) from users";
-		//SQL_col="select count(*) from products where cid="+category+"";
-	    //SQL_amount_row="select s.uid, sum(s.quantity*s.price) from  u_t u, sales s, products p  where s.pid=p.id and p.cid="+category+" and s.uid=u.id group by s.uid;";
-		//SQL_amount_col="select s.pid, sum(s.quantity*s.price) from p_t p, sales s where s.pid=p.id  group by s.pid;";
+		SQL_1 = "select * from pc_UseCatAmt where cid = " + category + " order by total desc, uid, cid limit 20";
+		SQL_2 = "select ppa.pid, ppa.name, ppa.total from pc_ProdAmt as ppa, products as p where p.cid = "+ category 
+				+" and ppa.pid = p.id order by ppa.total desc limit 10";
+		
+		SQL_4 ="DROP TABLE IF EXISTS temp1; CREATE TABLE temp1 (u_rank SERIAL PRIMARY KEY, uid INT); "+
+		       "INSERT INTO temp1(uid) select uid from pc_UseCatAmt where cid = "+ category +
+		       " order by total desc limit 20; DROP TABLE IF EXISTS temp2; "+
+		       "CREATE TABLE temp2 (p_Rank SERIAL PRIMARY KEY, pid INT); "+
+		       "INSERT INTO temp2(pid) select ppa.pid from pc_ProdAmt as ppa, products as p where p.cid = "+category+
+		       " and ppa.pid = p.id order by ppa.total desc limit 10; DROP TABLE IF EXISTS temp3; "+
+		       "CREATE TABLE temp3 (t_rank SERIAL PRIMARY KEY, uid INT, pid INT); "+
+		       "INSERT INTO temp3(uid, pid) select t1.uid, t2.pid from temp1 as t1, temp2 as t2;";
+		
+		SQL_3 = "select t3.t_rank, t3.uid, t3.pid, coalesce(pc_UserProdAmt.total,0) as total " +
+				"from temp3 as t3 " + 
+				"left outer join pc_UserProdAmt on t3.uid = pc_UserProdAmt.uid " +
+				"AND t3.pid = pc_UserProdAmt.pid " +
+				"order by t3.t_rank";
 	}
 	
 	if(!("All").equals(state) && ("0").equals(category) )//1,0
 	{
-		SQL_1 = "SELECT * FROM pc_UseStAmt desc limit 20";
-		SQL_2 = "SELECT * FROM pc_ProdStAmt desc limit 10";
+		SQL_1 = "SELECT * FROM pc_UsersAmt as pua, users as u where pua.uid = u.id and u.state = '"+ state +"' ORDER BY pua.total desc LIMIT 20";
+		SQL_2 = "SELECT * FROM pc_StateProdAmt as pspa where state = '"+state+"' order by total desc limit 10";
+		SQL_4 = "";
 		SQL_3 = "SELECT * FROM pc_cust10 order by total desc, prod_total desc";
 		//SQL_1="select id,name from users where state='"+state+"' order by name asc offset "+pos_row+" limit "+show_num_row;
 		//SQL_2="select id,name from products order by name asc offset "+pos_col+" limit "+show_num_col;
@@ -220,35 +219,11 @@ try
  
 	<table align="center" width="100%" border="1">
 	<%	
+	        stmt4.executeUpdate(SQL_4);
         rs3=stmt3.executeQuery(SQL_3);
-	    rs2.beforeFirst();//reset user list
-	    for(i=0;i<u_list.size();i++)
-		{
-	    	rs3.next();
-			out.println("<tr  align='center'>");
-			if(rs3.getInt("uid") == u_list.get(i))
-			{
-			    for(j=0;j<p_list.size();j++)
-			    {   
-				    if( rs3.getInt("pid") == p_list.get(i))
-				    {
-				    	
-				    }
-				//System.out.println(u_list.get(i));
-				/*if(rs3.getInt("uid")==u_list.get(i) && rs3.getInt("pid")==p_list.get(j))
-				{
-				    out.println("<td width=\"10%\"><font color='#ff0000'>"+rs3.getString("total")+"</font></td>");
-				}
-				else
-				{
-					out.println("<td width=\"10%\"><font color='#ff0000'>0</font></td>");
-				}*/
-			    }
-			    out.println("</tr>");
-			}
-		}
+
 	    
-		/*for(i=0;i<u_list.size();i++)
+		for(i=0;i<u_list.size();i++)
 		{
 			out.println("<tr  align='center'>");
 			for(j=0;j<p_list.size();j++)
@@ -257,7 +232,7 @@ try
 				out.println("<td width=\"10%\"><font color='#ff0000'>"+rs3.getString("total")+"</font></td>");
 			}
 			out.println("</tr>");
-		}*/
+		}
 	%>
 	</table>
 	
