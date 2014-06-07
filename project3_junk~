@@ -373,21 +373,70 @@ DROP TABLE IF EXISTS temp3; CREATE TABLE temp3 as (select t1.uid, t2.pid from te
 
 
 ////////////////////////////////////////////////////////////////////////////////////
-select pua.uid from pc_UserAmt group by pau.uid desc limit 20;
+DROP TABLE IF EXISTS temp1; CREATE TABLE temp1 (u_rank SERIAL PRIMARY KEY, uid INT); INSERT INTO temp1(uid) select uid from pc_UseCatAmt where cid = 1 order by total desc limit 20; DROP TABLE IF EXISTS temp2; CREATE TABLE temp2 (p_Rank SERIAL PRIMARY KEY, pid INT); INSERT INTO temp2(pid) select ppa.pid from pc_ProdAmt as ppa, products as p where p.cid = 1 and ppa.pid = p.id order by ppa.total desc limit 10; DROP TABLE IF EXISTS temp3; CREATE TABLE temp3 (t_rank SERIAL PRIMARY KEY, uid INT, pid INT); INSERT INTO temp3(uid, pid) select t1.uid, t2.pid from temp1 as t1, temp2 as t2;
+
+
+select t3.t_rank, t3.uid, t3.pid, coalesce(pc_UserProdAmt.total,0) as total
+from temp3 as t3 
+left outer join pc_UserProdAmt on t3.uid = pc_UserProdAmt.uid 
+AND t3.pid = pc_UserProdAmt.pid join products on products.id = t3.pid and products.cid = 1 
+order by t3.t_rank;
+
+
+select ppa.pid, ppa.total from pc_ProdAmt as ppa, products as p where p.cid = 1 and ppa.pid = p.id order by ppa.total desc limit 10;
 
 
 
-Select pua.uid, ppa.pid, pupa.total 
-From pc_usersamt AS pua, pc_prodamt AS ppa, pc_userprodamt AS pupa
-WHERE 
-      pua.uid = pupa.uid AND ppa.pid = pupa.pid
-  AND pupa.uid IN (select puaI.uid from pc_UsersAmt as puaI order by puaI.total desc limit 20)
-  AND pupa.pid IN (select ppaI.pid from pc_ProdAmt as ppaI order by ppaI.total desc limit 10)
-
-Group By pua.uid, ppa.pid, 
-Order By pua.total desc, ppa.total desc;
 
 
-select t3.uid, t3.pid, coalesce(pc_UserProdAmt.total, 0) as total from temp3 as t3
-LEFT OUTER JOIN pc_UserProdAmt on t3.uid = pc_UserProdAmt.uid AND t3.pid = pc_UserProdAmt.pid
-group by t3.uid, t3.pid;
+
+
+
+
+
+
+
+DROP TABLE IF EXISTS temp1; 
+CREATE TABLE temp1 (u_rank SERIAL PRIMARY KEY, state TEXT); 
+INSERT INTO temp1(state) select psa.state from pc_StateAmt as psa order by psa.total desc limit 20; 
+
+DROP TABLE IF EXISTS temp2; 
+CREATE TABLE temp2 (p_Rank SERIAL PRIMARY KEY, pid INT); 
+INSERT INTO temp2(pid) select pspa.pid from pc_StateProdAmt as pspa order by pspa.total desc limit 10; 
+
+DROP TABLE IF EXISTS temp3; CREATE TABLE temp3 (t_rank SERIAL PRIMARY KEY, state TEXT, pid INT); INSERT INTO temp3(state, pid) select t1.state, t2.pid from temp1 as t1, temp2 as t2;
+
+select t3.t_rank, t3.state, t3.pid, coalesce(pc_StateProdAmt.total,0) as total
+from temp3 as t3
+left outer join pc_StateProdAmt on t3.state = pc_StateProdAmt.state
+AND t3.pid = pc_StateProdAmt.pid
+order by t3.t_rank;
+
+
+
+SELECT * FROM pc_UsersAmt as pua, users as u where pua.uid = u.id and u.state = 'Kansas' ORDER BY pua.total desc LIMIT 20;
+
+
+//case state all all 00
+DROP TABLE IF EXISTS temp1;
+CREATE TABLE temp1 (u_rank SERIAL PRIMARY KEY, sid INT);
+INSERT INTO temp1(sid) select states.id from states, pc_StateAmt as psa
+WHERE states.name = psa.state order by psa.total desc limit 20;
+
+DROP TABLE IF EXISTS temp2;
+CREATE TABLE temp2 (p_Rank SERIAL PRIMARY KEY, pid INT);
+INSERT INTO temp2(pid) select pspa.pid from pc_StateProdAmt as pspa order by pspa.total desc limit 10;
+
+DROP TABLE IF EXISTS temp3; CREATE TABLE temp3 (t_rank SERIAL PRIMARY KEY, sid INT, pid INT); INSERT INTO temp3(sid, pid) select t1.sid, t2.pid from temp1 as t1, temp2 as t2;
+
+select t3.t_rank, t3.sid, t3.pid, coalesce(pc_StateProdAmt.total,0) as total
+from temp3 as t3 join states on t3.sid = states.id
+left outer join pc_StateProdAmt on states.name = pc_StateProdAmt.state
+AND t3.pid = pc_StateProdAmt.pid
+order by t3.t_rank;
+
+
+
+
+
+DROP TABLE IF EXISTS temp1; CREATE TABLE temp1 (u_rank SERIAL PRIMARY KEY, sid INT); INSERT INTO temp1(sid) select states.id from states, pc_StateAmt as psa WHERE states.name = psa.state order by psa.total desc limit 20; DROP TABLE IF EXISTS temp2; CREATE TABLE temp2 (p_Rank SERIAL PRIMARY KEY, pid INT); INSERT INTO temp2(pid) select pspa.pid from pc_StateProdAmt as pspa order by pspa.total desc limit 10; DROP TABLE IF EXISTS temp3; CREATE TABLE temp3 (t_rank SERIAL PRIMARY KEY, sid INT, pid INT); INSERT INTO temp3(sid, pid) select t1.sid, t2.pid from temp1 as t1, temp2 as t2;

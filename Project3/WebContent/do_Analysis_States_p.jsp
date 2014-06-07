@@ -84,8 +84,20 @@ try
 	
 	if(("All").equals(state) && !("0").equals(category) )//0,1
 	{
-		SQL_1="select state from users  group by state order by state asc offset "+pos_row+" limit "+show_num_row;
-		SQL_2="select id,name from products where cid="+category+" order by name asc offset "+pos_col+" limit "+show_num_col;
+		//SQL_1="select state from users  group by state order by state asc offset "+pos_row+" limit "+show_num_row;
+		SQL_1 = "";
+		//SQL_2="select id,name from products where cid="+category+" order by name asc offset "+pos_col+" limit "+show_num_col;
+		SQL_2 = "";
+		SQL_4="DROP TABLE IF EXISTS temp1; CREATE TABLE temp1 (u_rank SERIAL PRIMARY KEY, sid INT); "+
+              "INSERT INTO temp1(sid) select states.id from states, products, pc_StateCatAmt as psca "+
+              "WHERE states.name = psca.state AND products.cid = psca.cid AND psca.cid = "+ category +
+              " order by psca.total desc limit 20; DROP TABLE IF EXISTS temp2; "+
+              "CREATE TABLE temp2 (p_Rank SERIAL PRIMARY KEY, pid INT); "+
+              "INSERT INTO temp2(pid) select products.id from products, pc_StateCatAmt as psca "+
+              "WHERE products.cid = psca.cid AND psca.cid = 1 order by psca.total desc limit 10; "+
+              "DROP TABLE IF EXISTS temp3; CREATE TABLE temp3 (t_rank SERIAL PRIMARY KEY, sid INT, pid INT); "+
+              "INSERT INTO temp3(sid, pid) select t1.sid, t2.pid from temp1 as t1, temp2 as t2;";
+        SQL_3 = "";
 		//SQL_ut="insert into us_t (id, state) select u2.id, u.state from ("+SQL_1+") as u left outer join users u2 on u2.state=u.state order by u.state";
 		//SQL_pt="insert into ps_t (id, name) "+SQL_2;
 		//SQL_row="select count(distinct state) from users";
