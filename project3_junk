@@ -294,9 +294,83 @@ sales:
  12 |  13 |   6 |        1 |     6
 (12 rows)
 
-select * from pc_UseCatAmt where cid = 3 order by amt desc, uid, cid limit 20;
-select * from pc_Users order by amt desc limit 20;
+select users.id as uid, products.id as pid, pc_UseCatAmt.amt as total, pc_ProdCatAmt.prod_amt as prod_total from users, products, pc_UseCatAmt, pc_ProdCatAmt WHERE users.id = pc_UseCatAmt.uid and pc_ProdCatAmt.pid = products.id group by users.id, products.id, pc_UseCatAmt.amt, pc_ProdCatAmt.prod_amt order by pc_UseCatAmt.amt desc, pc_ProdCatAmt.prod_amt desc;
 
-SELECT * FROM pc_ProdCatAmt where cid = 3 order by prod_amt desc, pid, cid limit 10;
+select users.id as uid, products.id as pid from users, products group by users.id, products.id;
 
-SELECT * FROM pc_ProdCatAmt where cid = 3 order by prod_amt desc, pid, cid limit 10;
+
+INSERT INTO pc_Users
+SELECT users.id, users.name, COALESCE(sum(sales.quantity * sales.price), 0) as amt
+FROM users left outer join sales 
+on sales.uid = users.id 
+group by users.id 
+order by amt desc;
+
+SELECT * FROM pc_UserProdAmt AS pcu left outer join (SELECT t.pid FROM pc_ProdAmt as t ORDER BY t.total desc LIMIT 10) on pcu.pid = t.pid group by pcu.uid;
+
+
+uid  
+------
+ 9949
+ 8404
+   74
+ 3912
+ 1032
+ 2871
+ 8478
+ 3577
+ 1046
+ 5235
+ 7668
+ 7774
+ 6136
+ 9386
+ 2896
+ 1856
+ 1193
+ 3633
+ 5293
+ 3761
+(20 rows)
+
+test=# select ppa.pid from pc_ProdAmt as ppa order by ppa.total desc limit 10;
+ pid 
+-----
+ 444
+ 354
+ 332
+ 393
+ 124
+ 352
+ 514
+ 641
+ 544
+ 966
+(10 rows)
+
+DROP TABLE IF EXISTS temp1; CREATE TABLE temp1 (id SERIAL PRIMARY KEY, uid INT); INSERT INTO temp1 select pua.uid from pc_UsersAmt as pua order by pua.total desc limit 20;
+
+DROP TABLE IF EXISTS temp2; CREATE TABLE temp2 (p_Rank SERIAL PRIMARY KEY, uid INT, total INT); INSERT INTO temp1 select pua.uid from pc_UsersAmt as pua order by pua.total desc limit 20;
+
+DROP TABLE IF EXISTS temp1; CREATE TABLE temp1 as (select pua.uid from pc_UsersAmt as pua order by pua.total desc limit 20);
+DROP TABLE IF EXISTS temp2; CREATE TABLE temp2 as (select ppa.pid from pc_ProdAmt as ppa order by ppa.total desc limit 10);
+DROP TABLE IF EXISTS temp3; CREATE TABLE temp3 as (select t1.uid, t2.pid from temp1 as t1, temp2 as t2);
+
+select pua.uid from pc_UserAmt group by pau.uid desc limit 20;
+
+
+
+Select pua.uid, ppa.pid, pupa.total 
+From pc_usersamt AS pua, pc_prodamt AS ppa, pc_userprodamt AS pupa
+WHERE 
+      pua.uid = pupa.uid AND ppa.pid = pupa.pid
+  AND pupa.uid IN (select puaI.uid from pc_UsersAmt as puaI order by puaI.total desc limit 20)
+  AND pupa.pid IN (select ppaI.pid from pc_ProdAmt as ppaI order by ppaI.total desc limit 10)
+
+Group By pua.uid, ppa.pid, 
+Order By pua.total desc, ppa.total desc;
+
+
+select t3.uid, t3.pid, coalesce(pc_UserProdAmt.total, 0) as total from temp3 as t3
+LEFT OUTER JOIN pc_UserProdAmt on t3.uid = pc_UserProdAmt.uid AND t3.pid = pc_UserProdAmt.pid
+group by t3.uid, t3.pid;

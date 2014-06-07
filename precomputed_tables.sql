@@ -194,7 +194,7 @@ CREATE TABLE new_table as (select users.id as uid, products.id as pid, pc_users.
 
 
 DROP TABLE IF EXISTS pc_cust00; 
-CREATE TABLE pc_cust00 as (select n.uid, n.pid, n.total, n.prod_total, coalesce(sum(sales.price * sales.quantity), 0) 
+CREATE TABLE pc_cust00 as (select n.uid, n.pid, n.total, n.prod_total, coalesce(sum(sales.price * sales.quantity), 0) as amt  
                           from new_table as n 
                           left outer join sales 
                           on n.uid = sales.uid 
@@ -226,6 +226,25 @@ CREATE TABLE pc_ProdCatAmt as (select t1.pid, t1.name, t1.cid, coalesce(sum(sale
 --select * from temp_ProdCatAmt1;
 /*DROP TABLE IF EXISTS pc_ProdCatAmt;
 CREATE TABLE pc_ProdCatAmt as (select t1.pid, t1.name, t1.cid, coalesce(t2.amt, 0) as prod_amt from temp_ProdCatAmt1 AS t1 LEFT OUTER JOIN temp_ProdCatAmt2 AS t2 ON t1.pid = t2.pid and t1.cid = t2.cid);*/
+------------------------------------------------------------------------------------------------------------------------
+
+DROP TABLE IF EXISTS temp_cust01; 
+/*CREATE TABLE temp_cust01 as (select users.id as uid, products.id as pid, pc_UseCatAmt.amt as total, pc_ProdCatAmt.prod_amt as prod_total 
+                           from users, products, pc_UseCatAmt, pc_ProdCatAmt 
+                           WHERE users.id = pc_UseCatAmt.uid 
+                           and pc_ProdCatAmt.pid = products.id 
+                           group by users.id, products.id, pc_UseCatAmt.amt, pc_ProdCatAmt.prod_amt 
+                           order by pc_UseCatAmt.amt desc, pc_ProdCatAmt.prod_amt desc);*/
+
+
+DROP TABLE IF EXISTS pc_cust01; 
+CREATE TABLE pc_cust01 as (select n.uid, n.pid, n.total, n.prod_total, coalesce(sum(sales.price * sales.quantity), 0) 
+                          from temp_cust01 as n 
+                          left outer join sales 
+                          on n.uid = sales.uid 
+                          and n.pid = sales.pid 
+                          group by n.uid, n.pid, n.total, n.prod_total 
+                          order by n.total, n.uid, n.pid);
 
 
 

@@ -45,8 +45,8 @@ HashMap<Integer, Integer> customer_ID_amount=	new HashMap<Integer, Integer>();
 %>
 <%
 Connection	conn=null;
-Statement 	stmt,stmt2;
-ResultSet 	rs=null;
+Statement 	stmt1,stmt2,stmt3;
+ResultSet 	rs1=null,rs2=null,rs3=null;
 String  	SQL_1=null,SQL_2=null,SQL_3=null,SQL_ut=null, SQL_pt=null, SQL_row=null, SQL_col=null;
 String  	SQL_amount_row=null,SQL_amount_col=null,SQL_amount_cell=null;
 int 		p_id=0, p_total, u_id=0;
@@ -62,15 +62,34 @@ try
 	String user="t-dogg3030";
 	String password="password";
 	conn =DriverManager.getConnection(url, user, password);
-	stmt =conn.createStatement();
-	stmt2 =conn.createStatement();
+	stmt1 =conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
+	stmt2 =conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
+	stmt3 =conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
 	
 	
 	if(("All").equals(state) && ("0").equals(category))//0,0
 	{
-		SQL_1 = "select * from pc_Users order by amt desc limit 20";//uid, names, amt per user
-		SQL_2 = "select * from pc_Prod order by prod_amt desc limit 10";//pid , names, amt per prod
-		SQL_3 = "select * from pc_cust00 order by total desc, prod_total desc"; // amt / prod by the user
+		//SQL_1 = "select * from pc_Users order by amt desc limit 20";//uid, names, amt per user
+		SQL_1 = "SELECT * FROM pc_UsersAmt ORDER BY total desc LIMIT 20";
+		//SQL_2 = "select * from pc_Prod order by prod_amt desc limit 10";//pid , names, amt per prod
+		SQL_2 = "SELECT * FROM pc_ProdAmt ORDER BY total desc LIMIT 10";
+		//SQL_3 = "select * from pc_cust00 order by total desc, prod_total desc"; // amt / prod by the user
+		SQL_3 = "DROP TABLE IF EXISTS temp1; CREATE TABLE temp1 (u_rank SERIAL PRIMARY KEY, uid INT); "+
+		        "INSERT INTO temp1(uid) select pua.uid from pc_UsersAmt as pua order by pua.total desc limit 20; "+
+				"DROP TABLE IF EXISTS temp2; CREATE TABLE temp2 (p_Rank SERIAL PRIMARY KEY, pid INT); "+
+		        "INSERT INTO temp2(pid) select ppa.pid from pc_ProdAmt as ppa order by ppa.total desc limit 10; "+
+				"DROP TABLE IF EXISTS temp3; CREATE TABLE temp3 (t_rank SERIAL PRIMARY KEY, uid INT, pid INT); "+
+		        "INSERT INTO temp3(uid, pid) select t1.uid, t2.pid from temp1 as t1, temp2 as t2; " +
+		        "select t3.t_rank, t3.uid, t3.pid, coalesce(pc_UserProdAmt.total,0) as total " +
+				"from temp3 as t3 " + 
+				"left outer join pc_UserProdAmt on t3.uid = pc_UserProdAmt.uid " +
+				"AND t3.pid = pc_UserProdAmt.pid " +
+				"order by t3.t_rank";
+		
+		
+		
+		/*SQL_3 = "SELECT * FROM pc_UserProdAmt AS pcu WHERE pcu.pid IN "
+		       +"(SELECT pcp.pid FROM pc_ProdAmt AS pcp ORDER BY pcp.total desc LIMIT 10) order by pcu.total desc";*/
 	}
 	
 	if(("All").equals(state) && !("0").equals(category))//0,1
@@ -125,14 +144,14 @@ try
 
 	//customer names and totals for the left column
 	System.out.println("IN SQL_1 EXE");
-	rs=stmt.executeQuery(SQL_1);
-	while(rs.next())
+	rs1=stmt1.executeQuery(SQL_1);
+	while(rs1.next())
 	{
 		System.out.println("IN WHILE 1");
 		//u_id=rs.getInt(1);
-		u_id = Integer.parseInt(rs.getString("uid"));
-		u_name=rs.getString("name");
-		u_total=Integer.parseInt(rs.getString("amt"));
+		u_id = Integer.parseInt(rs1.getString("uid"));
+		u_name=rs1.getString("name");
+		u_total=Integer.parseInt(rs1.getString("total"));
 		u_list.add(u_id);//user id list
 		u_name_list.add(u_name);//users name list
 		u_total_list.add(u_total);
@@ -142,13 +161,13 @@ try
 //	out.println(SQL_1+"<br>"+SQL_2+"<br>"+SQL_pt+"<BR>"+SQL_ut+"<br>"+SQL_row+"<BR>"+SQL_col+"<br>");
 	//product name
 	System.out.println("SQL_2 EXE");
-	rs=stmt.executeQuery(SQL_2);
-	while(rs.next())
+	rs2=stmt2.executeQuery(SQL_2);
+	while(rs2.next())
 	{
 		System.out.println("IN WHILE 2");
-		p_id=rs.getInt("pid");   //pid
-		p_name=rs.getString("name");//prod name
-		p_total=rs.getInt("prod_amt");//prod total
+		p_id=rs2.getInt("pid");   //pid
+		p_name=rs2.getString("name");//prod name
+		p_total=rs2.getInt("total");//prod total
 		p_list.add(p_id);
 	    p_name_list.add(p_name);
 	    p_total_list.add(p_total);
@@ -201,15 +220,41 @@ try
  
 	<table align="center" width="100%" border="1">
 	<%	
-        /*rs=stmt.executeQuery(SQL_3);
-		String idPair="";
-		for(i=0;i<u_list.size();i++)
+        rs3=stmt3.executeQuery(SQL_3);
+	    rs2.beforeFirst();//reset user list
+	    for(i=0;i<u_list.size();i++)
+		{
+	    	rs3.next();
+			out.println("<tr  align='center'>");
+			if(rs3.getInt("uid") == u_list.get(i))
+			{
+			    for(j=0;j<p_list.size();j++)
+			    {   
+				    if( rs3.getInt("pid") == p_list.get(i))
+				    {
+				    	
+				    }
+				//System.out.println(u_list.get(i));
+				/*if(rs3.getInt("uid")==u_list.get(i) && rs3.getInt("pid")==p_list.get(j))
+				{
+				    out.println("<td width=\"10%\"><font color='#ff0000'>"+rs3.getString("total")+"</font></td>");
+				}
+				else
+				{
+					out.println("<td width=\"10%\"><font color='#ff0000'>0</font></td>");
+				}*/
+			    }
+			    out.println("</tr>");
+			}
+		}
+	    
+		/*for(i=0;i<u_list.size();i++)
 		{
 			out.println("<tr  align='center'>");
 			for(j=0;j<p_list.size();j++)
 			{   
-				rs.next();
-				out.println("<td width=\"10%\"><font color='#ff0000'>"+rs.getString("amt")+"</font></td>");
+				rs3.next();
+				out.println("<td width=\"10%\"><font color='#ff0000'>"+rs3.getString("total")+"</font></td>");
 			}
 			out.println("</tr>");
 		}*/

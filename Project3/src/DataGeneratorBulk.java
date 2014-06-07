@@ -30,10 +30,10 @@ public class DataGeneratorBulk {
 		 * 10K customers, 1K products, 20 product categories and 100M sales
 		 * tuples
 		 */
-		int Num_users = 10; // 100
-		int Num_categories = 10; // 10
-		int Num_products = 10;// 1000
-		int Num_sales = 10;// 10000
+		int Num_users = 10000; // 100
+		int Num_categories = 20; // 10
+		int Num_products = 1000;// 1000
+		int Num_sales = 100000000;// 10000
 
 		String usersPath = "/home/t-dogg3030/Documents/users.txt", categoriesPath = "/home/t-dogg3030/Documents/categories.txt", productsPath = "/home/t-dogg3030/Documents/products.txt", salesPath = "/home/t-dogg3030/Documents/sales.txt";
 

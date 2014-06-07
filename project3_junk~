@@ -294,4 +294,6 @@ sales:
  12 |  13 |   6 |        1 |     6
 (12 rows)
 
+select users.id as uid, products.id as pid, pc_UseCatAmt.amt as total, pc_ProdCatAmt.prod_amt as prod_total from users, products, pc_UseCatAmt, pc_ProdCatAmt WHERE users.id = pc_UseCatAmt.uid and pc_ProdCatAmt.pid = products.id group by users.id, products.id, pc_UseCatAmt.amt, pc_ProdCatAmt.prod_amt order by pc_UseCatAmt.amt desc, pc_ProdCatAmt.prod_amt desc;
 
+select users.id as uid, products.id as pid from users, products group by users.id, products.id;
