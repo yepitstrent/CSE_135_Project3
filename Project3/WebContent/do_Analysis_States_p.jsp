@@ -133,18 +133,47 @@
 
 			if (!("All").equals(state) && !("0").equals(category))//1,1
 			{
-				SQL_1 = "select state from users where state='" + state
-						+ "'  group by state order by state asc offset "
-						+ pos_row + " limit " + show_num_row;
-				SQL_2 = "select id,name from products where cid="
-						+ category + " order by name asc offset " + pos_col
-						+ " limit " + show_num_col;
-				//SQL_ut="insert into us_t (id, state) select u2.id, u.state from ("+SQL_1+") as u left outer join users u2 on u2.state=u.state order by u.state";
-				//SQL_pt="insert into ps_t (id, name) "+SQL_2;
-				//SQL_row="select count(distinct state) from users where state='"+state+"'";
-				//SQL_col="select count(*) from products where cid="+category+"";
-				//SQL_amount_row="select u.state, sum(s.quantity*s.price) from  us_t u, sales s, products p  where s.pid=p.id and p.cid="+category+" and s.uid=u.id group by u.state;";
-				//SQL_amount_col="select s.pid, sum(s.quantity*s.price) from ps_t p, sales s, users u where s.pid=p.id  and s.uid=u.id and u.state='"+state+"' group by s.pid;";
+				SQL_1 = "select states.name, psca.total from states, pc_StateCatAmt as psca "
+						+ " WHERE states.name = psca.state AND states.name = '"
+						+ state
+						+ "' AND psca.cid = "
+						+ category
+						+ " order by psca.total desc limit 20";
+
+						SQL_2 = "select products.id, products.name, psca.total from pc_StateCatAmt as psca, states, products "
+						+ " where states.name = psca.state and psca.cid = products.cid and psca.cid = '"
+						+ category
+						+ "' and states.name = '"
+						+ state
+						+ "' order by psca.total desc limit 10";
+
+						SQL_3 = " select t3.t_rank, t3.sid, t3.pid, coalesce(pc_StateProdAmt.total,0) as total"
+						+ " from temp3 as t3 join states on t3.sid = states.id"
+						+ " left outer join pc_StateProdAmt on states.name = pc_StateProdAmt.state"
+						+ " AND t3.pid = pc_StateProdAmt.pid"
+						+ " order by t3.t_rank";
+
+						SQL_4 = " DROP TABLE IF EXISTS temp1; CREATE TABLE temp1 (u_rank SERIAL PRIMARY KEY, sid INT);"
+						+ " INSERT INTO temp1(sid) select states.id from states, pc_StateCatAmt as psca"
+						+ " WHERE states.name = psca.state AND states.name = '"
+						+ state
+						+ "' AND psca.cid = "
+						+ category
+						+ " order by psca.total desc limit 20;"
+
+						+ " DROP TABLE IF EXISTS temp2; CREATE TABLE temp2 (p_Rank SERIAL PRIMARY KEY, pid INT);"
+						+ " INSERT INTO temp2(pid) select products.id from pc_StateCatAmt as psca, states, products"
+						+ " where states.name = psca.state"
+						+ " and psca.cid = products.cid"
+						+ " and psca.cid = "
+						+ category
+						+ " and states.name = '"
+						+ state
+						+ "' order by psca.total desc limit 10;"
+
+						+ " DROP TABLE IF EXISTS temp3;"
+						+ " CREATE TABLE temp3 (t_rank SERIAL PRIMARY KEY, sid INT, pid INT);"
+						+ " INSERT INTO temp3(sid, pid) select t1.sid, t2.pid from temp1 as t1, temp2 as t2;";
 
 			}
 
