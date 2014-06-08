@@ -121,13 +121,17 @@
 
 			if (!("All").equals(state) && ("0").equals(category))//1,0
 			{
-				SQL_1 = "SELECT * FROM pc_UsersAmt as pua, users as u where pua.uid = u.id and u.state = '"
-						+ state + "' ORDER BY pua.total desc LIMIT 20";
+				SQL_1 = "SELECT * from pc_StateAmt where state = '"+ state +"'";
 				SQL_2 = "SELECT * FROM pc_StateProdAmt as pspa where state = '"
 						+ state + "' order by total desc limit 10";
-				/*SQL_4 = "DROP TABLE IF EXISTS temp1; CREATE TABLE temp1 (u_rank SERIAL PRIMARY KEY, sid INT); "+
-				        "INSERT INTO temp1(sid) select states.id from states, products, pc_StateCatAmt as psca "+
-				        "WHERE states.name = psca.state AND products.cid = psca.cid AND psca.cid = 1 order by psca.total desc limit 20; DROP TABLE IF EXISTS temp2; CREATE TABLE temp2 (p_Rank SERIAL PRIMARY KEY, pid INT); INSERT INTO temp2(pid) select products.id from products, pc_StateCatAmt as psca WHERE products.cid = psca.cid AND psca.cid = 1 order by psca.total desc limit 10; DROP TABLE IF EXISTS temp3; CREATE TABLE temp3 (t_rank SERIAL PRIMARY KEY, sid INT, pid INT); INSERT INTO temp3(sid, pid) select t1.sid, t2.pid from temp1 as t1, temp2 as t2;";*/
+				SQL_4 = "DROP TABLE IF EXISTS temp1; CREATE TABLE temp1 (u_rank SERIAL PRIMARY KEY, sid INT); "+
+				        "INSERT INTO temp1(sid) SELECT s.id from pc_StateAmt as pc, states as s where pc.state = s.name and s.name = '"+ state +"' ; "+
+				        "DROP TABLE IF EXISTS temp2; CREATE TABLE temp2 (p_Rank SERIAL PRIMARY KEY, pid INT); "+
+				        "INSERT INTO temp2(pid) SELECT pspa.pid FROM pc_StateProdAmt as pspa where state = '"
+						+ state + "' order by total desc limit 10; "+
+				        "DROP TABLE IF EXISTS temp3; "+
+				        "CREATE TABLE temp3 (t_rank SERIAL PRIMARY KEY, sid INT, pid INT); "+
+						"INSERT INTO temp3(sid, pid) select t1.sid, t2.pid from temp1 as t1, temp2 as t2;";
 				SQL_3 = "SELECT * FROM pc_cust10 order by total desc, prod_total desc";
 				//SQL_1="select id,name from users where state='"+state+"' order by name asc offset "+pos_row+" limit "+show_num_row;
 				//SQL_2="select id,name from products order by name asc offset "+pos_col+" limit "+show_num_col;
