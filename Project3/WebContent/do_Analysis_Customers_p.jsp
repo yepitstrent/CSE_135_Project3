@@ -121,26 +121,24 @@
 
 			if (!("All").equals(state) && ("0").equals(category))//1,0
 			{
-				SQL_1 = "SELECT * from pc_StateAmt where state = '"+ state +"'";
-				SQL_2 = "SELECT * FROM pc_StateProdAmt as pspa where state = '"
+				SQL_1 = "select pc.uid, pc.name, pc.total from pc_UsersAmt as pc, users as u "+
+			            "where pc.uid = u.id and u.state = '"+ state +
+						"' order by pc.total desc limit 20";
+				SQL_2 = "SELECT state as name, pid, total FROM pc_StateProdAmt as pc where state = '"
 						+ state + "' order by total desc limit 10";
-				SQL_4 = "DROP TABLE IF EXISTS temp1; CREATE TABLE temp1 (u_rank SERIAL PRIMARY KEY, sid INT); "+
-				        "INSERT INTO temp1(sid) SELECT s.id from pc_StateAmt as pc, states as s where pc.state = s.name and s.name = '"+ state +"' ; "+
-				        "DROP TABLE IF EXISTS temp2; CREATE TABLE temp2 (p_Rank SERIAL PRIMARY KEY, pid INT); "+
-				        "INSERT INTO temp2(pid) SELECT pspa.pid FROM pc_StateProdAmt as pspa where state = '"
-						+ state + "' order by total desc limit 10; "+
-				        "DROP TABLE IF EXISTS temp3; "+
-				        "CREATE TABLE temp3 (t_rank SERIAL PRIMARY KEY, sid INT, pid INT); "+
-						"INSERT INTO temp3(sid, pid) select t1.sid, t2.pid from temp1 as t1, temp2 as t2;";
-				SQL_3 = "SELECT * FROM pc_cust10 order by total desc, prod_total desc";
-				//SQL_1="select id,name from users where state='"+state+"' order by name asc offset "+pos_row+" limit "+show_num_row;
-				//SQL_2="select id,name from products order by name asc offset "+pos_col+" limit "+show_num_col;
-				//SQL_ut="insert into u_t (id, name) "+SQL_1;
-				//SQL_pt="insert into p_t (id, name) "+SQL_2;
-				//SQL_row="select count(*) from users where state='"+state+"' ";
-				//SQL_col="select count(*) from products";
-				//SQL_amount_row="select s.uid, sum(s.quantity*s.price) from  u_t u, sales s  where s.uid=u.id group by s.uid;";
-				//SQL_amount_col="select s.pid, sum(s.quantity*s.price) from p_t p, sales s, users u where s.pid=p.id  and s.uid=u.id and u.state='"+state+"'  group by s.pid;";
+				SQL_4 = "DROP TABLE IF EXISTS temp1; CREATE TABLE temp1 (u_rank SERIAL PRIMARY KEY, uid INT); "+
+						"INSERT INTO temp1(uid) select pc.uid from pc_UsersAmt as pc, users as u "+
+				        "where pc.uid = u.id and u.state = '"+state+"' order by pc.total desc limit 20; "+
+						"DROP TABLE IF EXISTS temp2; CREATE TABLE temp2 (p_Rank SERIAL PRIMARY KEY, pid INT); "+
+				        "INSERT INTO temp2(pid) SELECT pspa.pid FROM pc_StateProdAmt as pspa where state = '"+state+
+				        "' order by total desc limit 10; DROP TABLE IF EXISTS temp3; "+
+				        "CREATE TABLE temp3 (t_rank SERIAL PRIMARY KEY, uid INT, pid INT); "+
+				        "INSERT INTO temp3(uid, pid) select t1.uid, t2.pid from temp1 as t1, temp2 as t2;";
+				SQL_3 = "select t3.t_rank, t3.uid, t3.pid, coalesce(pc_UserProdAmt.total,0) as total "
+						+ "from temp3 as t3 "
+						+ "left outer join pc_UserProdAmt on t3.uid = pc_UserProdAmt.uid "
+						+ "AND t3.pid = pc_UserProdAmt.pid "
+						+ "order by t3.t_rank";
 			}
 
 			if (!("All").equals(state) && !("0").equals(category))//1,1
@@ -211,10 +209,11 @@
 		</tr>
 
 		<%
-			stmt4.executeUpdate(SQL_4);
+			    stmt4.executeUpdate(SQL_4);
 				rs3 = stmt3.executeQuery(SQL_3);
 
-				for (i = 0; i < u_list.size(); i++) {
+				for (i = 0; i < u_list.size(); i++) 
+				{
 
 					u_id = u_list.get(i);
 					u_name = u_name_list.get(i);
@@ -225,7 +224,8 @@
 							+ u_total
 							+ "</font>)</strong></td>");
 
-					for (j = 0; j < p_list.size(); j++) {
+					for (j = 0; j < p_list.size(); j++) 
+					{
 						rs3.next();
 						out.println("<td width=\"10%\"><font color='#ff0000'>"
 								+ rs3.getString("total") + "</font></td>");

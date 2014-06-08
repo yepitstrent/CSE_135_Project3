@@ -617,3 +617,60 @@ select t3.t_rank, t3.sid, t3.pid, coalesce(pc_StateProdAmt.total,0) as total fro
 left outer join pc_StateProdAmt on states.name = pc_StateProdAmt.state AND t3.pid = pc_StateProdAmt.pid
 order by t3.t_rank;
 
+
+/////////////////////////////////////////////////////////////////////////////////////
+
+SELECT * from pc_StateAmt where state = 'Kansas';
+SELECT * FROM pc_StateProdAmt as pspa where state = 'Kansas' order by total desc limit 10;
+
+DROP TABLE IF EXISTS temp1; CREATE TABLE temp1 (u_rank SERIAL PRIMARY KEY, sid INT); INSERT INTO temp1(sid) SELECT s.id from pc_StateAmt as pc, states as s where pc.state = s.name and s.name = 'Kansas';
+
+DROP TABLE IF EXISTS temp2; CREATE TABLE temp2 (p_Rank SERIAL PRIMARY KEY, pid INT); INSERT INTO temp2(pid) SELECT pspa.pid FROM pc_StateProdAmt as pspa where state = 'Kansas' order by total desc limit 10; 
+
+DROP TABLE IF EXISTS temp3; CREATE TABLE temp3 (t_rank SERIAL PRIMARY KEY, sid INT, pid INT); INSERT INTO temp3(sid, pid) select t1.sid, t2.pid from temp1 as t1, temp2 as t2;
+
+SELECT * FROM pc_cust10 order by total desc, prod_total desc;
+
+
+
+
+SQL_3 = "select t3.t_rank, t3.sid, t3.pid, coalesce(pc_StateProdAmt.total,0) as total "+
+						"from temp3 as t3 join states on t3.sid = states.id left outer join pc_StateProdAmt "+
+				        "on states.name = pc_StateProdAmt.state AND t3.pid = pc_StateProdAmt.pid order by t3.t_rank;";
+
+test=# select * from temp3;
+ t_rank | sid | pid 
+--------+-----+-----
+      1 |  48 | 332
+      2 |  48 | 544
+      3 |  48 | 470
+      4 |  48 | 972
+      5 |  48 | 354
+      6 |  48 |  89
+      7 |  48 | 444
+      8 |  48 | 124
+      9 |  48 | 137
+     10 |  48 | 352
+(10 rows)
+
+
+
+select pc.uid, pc.name, pc.total from pc_UsersAmt as pc, users as u where pc.uid = u.id and u.state = 'Kansas' order by pc.total desc limit 20
+select t3.t_rank, t3.uid, pid coalesce(pc_UserProdAmt.total,0) as total from temp3 as t3 left outer join 
+
+
+
+SELECT * FROM pc_StateProdAmt as pc where state = 'Kansas' order by total desc limit 10
+
+
+
+select pc.uid, pc.name, pc.total from pc_UsersAmt as pc, users as u where pc.uid = u.id and u.state = 'Kansas' order by pc.total desc limit 20
+
+
+
+DROP TABLE IF EXISTS temp1; CREATE TABLE temp1 (u_rank SERIAL PRIMARY KEY, uid INT); INSERT INTO temp1(uid) select pc.uid from pc_UsersAmt as pc, users as u where pc.uid = u.id and u.state = 'Kansas' order by pc.total desc limit 20; 
+
+DROP TABLE IF EXISTS temp2; CREATE TABLE temp2 (p_Rank SERIAL PRIMARY KEY, pid INT); INSERT INTO temp2(pid) SELECT pspa.pid FROM pc_StateProdAmt as pspa where state = 'Kansas' order by total desc limit 10; 
+
+DROP TABLE IF EXISTS temp3; CREATE TABLE temp3 (t_rank SERIAL PRIMARY KEY, sid INT, pid INT); INSERT INTO temp3(sid, pid) select t1.sid, t2.pid from temp1 as t1, temp2 as t2;
+
